@@ -64,6 +64,7 @@ final class ConfigurationApi
         return [
             dirname(__DIR__) . '/skills-api-audiomack.har',
             dirname(__DIR__) . '/skill-artiste-data.har',
+            dirname(__DIR__) . '/skill-pagination-recherche.har',
         ];
     }
 

@@ -55,6 +55,7 @@
   <script src="./ressources/js/rendu_resultats.js"></script>
   <script src="./ressources/js/rendu_page_artiste.js"></script>
   <script src="./ressources/js/page_artiste.js"></script>
+  <script src="./ressources/js/pagination_recherche.js"></script>
   <script src="./ressources/js/suggestions_recherche.js"></script>
   <script src="./ressources/js/application.js"></script>
 </body>

@@ -189,6 +189,21 @@
 .carte-piste.en-lecture .bouton-ecouter:hover:not(:disabled) { background: #fbd9dc; color: var(--rouge-fonce); }
 
 .recherche-pied { display: flex; justify-content: center; margin-top: 1.5rem; }
+.recherche-entete { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.25rem; }
+.recherche-titre-bloc { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; }
+.recherche-filtres { display: flex; flex-wrap: wrap; gap: .6rem; }
+.recherche-groupe-filtres { display: inline-flex; flex-wrap: wrap; gap: .35rem; padding: .25rem; background: var(--voile); border: 1px solid var(--trait); border-radius: 999px; }
+.filtre-pilule { padding: .35rem .85rem; border: 0; border-radius: 999px; background: transparent; color: var(--encre-douce); font-size: .86rem; font-weight: 700; cursor: pointer; transition: background-color .15s, color .15s; }
+.filtre-pilule:hover { color: var(--encre); }
+.filtre-pilule.actif { background: var(--rouge); color: #fff; }
+.recherche-artiste-vedette { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; padding: 1rem 1.25rem; margin-bottom: 1.25rem; background: var(--voile); border: 1px solid var(--trait); border-radius: var(--rayon-moyen); }
+.pagination-recherche { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: .65rem; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--trait); }
+.pagination-numeros { display: flex; align-items: center; gap: .35rem; flex-wrap: wrap; }
+.pagination-page { min-width: 40px; height: 40px; padding: 0 .7rem; border: 1.5px solid var(--trait-fort); border-radius: 999px; background: #fff; color: var(--encre); font-weight: 700; font-variant-numeric: tabular-nums; cursor: pointer; transition: border-color .15s, background-color .15s, color .15s; }
+.pagination-page:hover { border-color: var(--rouge); color: var(--rouge); }
+.pagination-page.actif { border-color: var(--rouge); background: var(--rouge); color: #fff; }
+.pagination-points { padding: 0 .35rem; color: var(--encre-douce); font-weight: 700; }
+.pagination-nav { padding: .55rem 1.05rem; font-size: .9rem; }
 .bouton-retour { justify-self: start; margin-bottom: -1.5rem; padding: .45rem 1rem .45rem .7rem; background: #fff; border: 1.5px solid var(--trait-fort); color: var(--encre); font-size: .9rem; }
 .bouton-retour:hover { border-color: var(--encre); }
 

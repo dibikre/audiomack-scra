@@ -95,11 +95,25 @@ final class ControleurAudiomack
             ReponseHttp::envoyerErreur('Please enter a search query.', 400);
         }
 
-        $limite = ReponseHttp::lireParametreEntier('limit', ConfigurationApi::TAILLE_PAGE_DEFAUT, 1, 24);
-        $decalage = ReponseHttp::lireParametreEntier('offset', 0, 0, 240);
-        $page = intdiv($decalage, $limite) + 1;
+        $filtre = ReponseHttp::lireParametreTexte('show', 'music', 20);
+        if (!in_array($filtre, ['music', 'songs', 'albums'], true)) {
+            $filtre = 'music';
+        }
+        $tri = ReponseHttp::lireParametreTexte('sort', 'popular', 20);
+        if (!in_array($tri, ['popular', 'recent'], true)) {
+            $tri = 'popular';
+        }
 
-        $reponse = $this->client->rechercher($requete, $page, $limite, 'songs');
+        $pageParam = $_GET['page'] ?? null;
+        if ($pageParam !== null && $pageParam !== '') {
+            $page = ReponseHttp::lireParametreEntier('page', 1, 1, 100);
+        } else {
+            $limite = ReponseHttp::lireParametreEntier('limit', 20, 1, 24);
+            $decalage = ReponseHttp::lireParametreEntier('offset', 0, 0, 2000);
+            $page = intdiv($decalage, $limite) + 1;
+        }
+
+        $reponse = $this->client->rechercher($requete, $page, $filtre, $tri);
         $bruts = is_array($reponse['results'] ?? null) ? $reponse['results'] : [];
 
         $pistes = [];
@@ -113,9 +127,15 @@ final class ControleurAudiomack
             }
         }
 
+        $seuilPagePleine = ($filtre === 'songs' && $tri === 'popular') ? 12 : 20;
+
         ReponseHttp::envoyerSucces([
             'pistes' => $pistes,
-            'suivant' => count($bruts) >= $limite,
+            'page' => $page,
+            'precedent' => $page > 1,
+            'suivant' => count($bruts) >= $seuilPagePleine,
+            'show' => $filtre,
+            'sort' => $tri,
             'artiste_verifie' => ModeleArtiste::normaliser(
                 is_array($reponse['verified_artist'] ?? null) ? $reponse['verified_artist'] : null
             ),
@@ -129,7 +149,7 @@ final class ControleurAudiomack
             ReponseHttp::envoyerSucces(['suggestions' => []]);
         }
 
-        $reponse = $this->client->rechercher($requete, 1, 8, 'songs');
+        $reponse = $this->client->rechercher($requete, 1, 'songs', 'popular', 8);
         $suggestions = [];
         $vus = [];
 

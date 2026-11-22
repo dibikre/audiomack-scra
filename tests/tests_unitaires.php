@@ -74,4 +74,27 @@ affirmer($sauve['chemin_relatif'] === 'musiques/Test Track.m4a' && is_file($sauv
 @unlink($sauve['chemin_absolu']);
 @rmdir($dossierTemp);
 
-echo "Tous les tests unitaires ont reussi (6/6).\n";
+// 7. Test pagination de recherche HAR (skill-pagination-recherche.har)
+$page1 = $har->rechercherDansHar('/v1/livesearch', 'amapiano', 'page=1');
+$page2 = $har->rechercherDansHar('/v1/livesearch', 'amapiano', 'page=2');
+$page3 = $har->rechercherDansHar('/v1/livesearch', 'amapiano', 'page=3');
+affirmer(
+    count($page1['results'] ?? []) === 20
+    && count($page2['results'] ?? []) === 20
+    && count($page3['results'] ?? []) === 20,
+    'Chaque page de recherche HAR doit contenir 20 resultats'
+);
+affirmer(
+    (string) ($page1['results'][0]['id'] ?? '') === '24088244'
+    && (string) ($page2['results'][0]['id'] ?? '') === '103104225'
+    && (string) ($page3['results'][0]['id'] ?? '') === '35976881',
+    'Chaque page de recherche HAR doit retourner des resultats distincts'
+);
+$cartesPage2 = array_values(array_filter(array_map(
+    static fn(array $item): ?array => ModelePiste::normaliserCarteRecherche($item),
+    $page2['results'] ?? []
+)));
+affirmer(count($cartesPage2) === 20, 'Normalisation des 20 cartes mixtes (song + album) sur la page 2');
+
+echo "Tous les tests unitaires ont reussi (7/7).\n";
+

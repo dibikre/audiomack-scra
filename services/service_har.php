@@ -26,8 +26,11 @@ final class ServiceHar
         }
     }
 
-    public function rechercherDansHar(string $cheminEndpoint, ?string $motCle = null): ?array
-    {
+    public function rechercherDansHar(
+        string $cheminEndpoint,
+        ?string $motCle = null,
+        ?string $filtreSecondaire = null
+    ): ?array {
         foreach ($this->cheminsHar as $chemin) {
             $entrees = $this->chargerEntrees($chemin);
             foreach ($entrees as $entree) {
@@ -37,6 +40,14 @@ final class ServiceHar
                 }
                 if ($motCle !== null && $motCle !== '' && !str_contains(strtolower($url), strtolower($motCle))) {
                     continue;
+                }
+                if ($filtreSecondaire !== null && $filtreSecondaire !== '') {
+                    $correspond = str_contains($filtreSecondaire, '=')
+                        ? (preg_match('/(?:[?&]|^)' . preg_quote($filtreSecondaire, '/') . '(?:[&#]|$)/', $url) === 1)
+                        : str_contains($url, $filtreSecondaire);
+                    if (!$correspond) {
+                        continue;
+                    }
                 }
                 $contenu = $this->extraireContenuJson($entree);
                 if ($contenu !== null) {

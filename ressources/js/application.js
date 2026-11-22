@@ -1,6 +1,5 @@
 'use strict';
 
-const TAILLE_PAGE = 12;
 let _rechercheActive = null;
 let _collectionActive = null;
 let _minuteurProgression = null;
@@ -132,10 +131,15 @@ async function lancerAnalyseUrl() {
   }
 }
 
-async function recupererPistes(requete, decalage) {
-  const reponse = await fetch(
-    `./api.php?action=rechercher&q=${encodeURIComponent(requete)}&limit=${TAILLE_PAGE}&offset=${decalage}`
-  );
+async function recupererPistes(requete, page = 1, show = 'music', sort = 'popular') {
+  const params = new URLSearchParams({
+    action: 'rechercher',
+    q: requete,
+    page: String(page),
+    show,
+    sort,
+  });
+  const reponse = await fetch(`./api.php?${params.toString()}`);
   const resultat = await reponse.json();
   if (!resultat.success) throw new Error(resultat.error || 'Unknown server error');
   return resultat;
@@ -143,49 +147,33 @@ async function recupererPistes(requete, decalage) {
 
 function afficherResultatsRecherche() {
   const zone = parId('resultats-recherche');
-  const { requete, pistes, suivant } = _rechercheActive;
-  zone.innerHTML = pistes.length
-    ? `<div>
-         <h2 class="rubrique-titre">Results for "${echapperHtml(requete)}"</h2>
-         <ul class="liste-pistes" id="liste-pistes">${pistes.map(htmlCartePiste).join('')}</ul>
-         ${suivant ? '<div class="recherche-pied"><button type="button" class="bouton bouton-secondaire" id="bouton-plus">Load more tracks</button></div>' : ''}
-       </div>`
-    : `<div class="vide">No tracks found for "${echapperHtml(requete)}". Try another keyword.</div>`;
+  zone.innerHTML = htmlResultatsRecherche(_rechercheActive);
   zone.hidden = false;
   parId('page').classList.add('a-des-resultats');
   synchroniserCartes();
 }
 
-async function rechercherTitres(requete) {
-  afficherChargement('Searching Audiomack...', 'recherche');
+async function rechercherTitres(requete, page = 1, show = 'music', sort = 'popular') {
+  afficherChargement(page > 1 ? `Loading page ${page}...` : 'Searching Audiomack...', 'recherche');
+  if (page > 1) window.scrollTo({ top: 0, behavior: 'smooth' });
   try {
-    const resultat = await recupererPistes(requete, 0);
-    _rechercheActive = { requete, decalage: TAILLE_PAGE, pistes: resultat.pistes, suivant: resultat.suivant };
+    const resultat = await recupererPistes(requete, page, show, sort);
+    _rechercheActive = {
+      requete,
+      page: resultat.page || page,
+      precedent: Boolean(resultat.precedent),
+      suivant: Boolean(resultat.suivant),
+      show: resultat.show || show,
+      sort: resultat.sort || sort,
+      pistes: resultat.pistes || [],
+      artiste_verifie: resultat.artiste_verifie || null,
+    };
     terminerProgression(true);
     masquerStatut();
     definirLancement(false);
     afficherResultatsRecherche();
   } catch (e) {
     afficherErreur(e.message);
-  }
-}
-
-async function afficherPlusDeTitres(bouton) {
-  bouton.disabled = true;
-  bouton.textContent = 'Loading...';
-  try {
-    const resultat = await recupererPistes(_rechercheActive.requete, _rechercheActive.decalage);
-    const depart = _rechercheActive.pistes.length;
-    _rechercheActive.pistes.push(...resultat.pistes);
-    _rechercheActive.decalage += TAILLE_PAGE;
-    _rechercheActive.suivant = resultat.suivant;
-    parId('liste-pistes').insertAdjacentHTML('beforeend', resultat.pistes.map((p, i) => htmlCartePiste(p, depart + i)).join(''));
-    synchroniserCartes();
-    if (resultat.suivant) { bouton.disabled = false; bouton.textContent = 'Load more tracks'; }
-    else bouton.closest('.recherche-pied').remove();
-  } catch (_) {
-    bouton.disabled = false;
-    bouton.textContent = 'Retry';
   }
 }
 
@@ -209,17 +197,16 @@ function ouvrirAnalyseDepuisCarte(url) {
 }
 
 parId('resultats-recherche').addEventListener('click', (e) => {
-  const lienArtiste = e.target.closest('.lien-artiste[data-artiste-slug]');
+  const lienArtiste = e.target.closest('[data-artiste-slug]');
   if (lienArtiste) { ouvrirPageArtiste(lienArtiste.dataset.artisteSlug); return; }
+  if (gererClicPaginationRecherche(e)) return;
 
   const carte = e.target.closest('.carte-piste');
   if (carte && _rechercheActive) {
     const piste = _rechercheActive.pistes[Number(carte.dataset.indice)];
-    if (e.target.closest('.bouton-ecouter, .carte-pochette') && piste.type !== 'album') { ecouterCarte(piste); return; }
-    if (e.target.closest('.bouton-analyser')) { ouvrirAnalyseDepuisCarte(piste.url); return; }
+    if (e.target.closest('.bouton-ecouter, .carte-pochette') && piste.type === 'song') { ecouterCarte(piste); return; }
+    if (e.target.closest('.bouton-analyser')) { ouvrirAnalyseDepuisCarte(piste.url); }
   }
-  const boutonPlus = e.target.closest('#bouton-plus');
-  if (boutonPlus) afficherPlusDeTitres(boutonPlus);
 });
 
 parId('resultats').addEventListener('click', async (e) => {

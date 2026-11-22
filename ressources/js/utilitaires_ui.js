@@ -45,6 +45,7 @@ const CHEMINS_ICONES = {
   note: '<path d="M8 15V5l8-2v10"/><circle cx="6" cy="15" r="2.2"/><circle cx="14" cy="13" r="2.2"/>',
   loupe: '<circle cx="9" cy="9" r="5.5"/><path d="M13.5 13.5L17 17"/>',
   gauche: '<path d="M12 5l-5 5 5 5"/>',
+  droite: '<path d="M8 5l5 5-5 5"/>',
   lire: '<path d="M6.5 4.5v11l9-5.5z" fill="currentColor"/>',
   pause: '<path d="M7 4.5v11M13 4.5v11" stroke-width="2.6"/>',
   fermer: '<path d="M5 5l10 10M15 5L5 15"/>',

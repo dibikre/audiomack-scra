@@ -32,7 +32,8 @@ final class ServiceClientAudiomack
 
         if ($corps === false || $codeHttp === 0) {
             $this->journal->avertissement('Echec reseau Audiomack, tentative HAR', ['chemin' => $cheminPropre, 'erreur' => $erreurCurl]);
-            $secours = $this->serviceHar->rechercherDansHar($cheminPropre, (string) ($parametres['q'] ?? ''));
+            $filtrePage = isset($parametres['page']) ? ('page=' . $parametres['page']) : null;
+            $secours = $this->serviceHar->rechercherDansHar($cheminPropre, (string) ($parametres['q'] ?? ''), $filtrePage);
             if ($secours !== null) {
                 return $secours;
             }
@@ -163,15 +164,23 @@ final class ServiceClientAudiomack
         return $this->requeteGet('/music/play/' . rawurlencode($idPiste));
     }
 
-    public function rechercher(string $requete, int $page = 1, int $limite = 12, string $filtre = 'music'): array
-    {
-        return $this->requeteGet('/livesearch', [
+    public function rechercher(
+        string $requete,
+        int $page = 1,
+        string $filtre = 'music',
+        string $tri = 'popular',
+        int $limite = 0
+    ): array {
+        $parametres = [
             'q' => $requete,
             'show' => $filtre,
-            'sort' => 'popular',
-            'page' => (string) $page,
-            'limit' => (string) $limite,
+            'sort' => $tri,
+            'page' => (string) max(1, $page),
             'exclude_tracks' => '1',
-        ]);
+        ];
+        if ($limite > 0) {
+            $parametres['limit'] = (string) $limite;
+        }
+        return $this->requeteGet('/livesearch', $parametres);
     }
 }
