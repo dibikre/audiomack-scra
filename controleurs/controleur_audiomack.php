@@ -39,6 +39,7 @@ final class ControleurAudiomack
                 'rechercher' => $this->rechercher(),
                 'suggestions' => $this->suggestions(),
                 'verifier_flux' => $this->verifierFlux(),
+                'sauvegarder' => $this->sauvegarder(),
                 'flux' => $this->flux(false),
                 'telecharger' => $this->flux(true),
                 default => ReponseHttp::envoyerErreur('Unknown action requested.', 400),
@@ -161,8 +162,18 @@ final class ControleurAudiomack
     private function verifierFlux(): never
     {
         $id = ReponseHttp::lireParametreTexte('id', '', 32);
-        $qualite = $this->fluxAudio->verifierFlux($id);
+        $titre = ReponseHttp::lireParametreTexte('titre', '', 150);
+        $qualite = $this->fluxAudio->verifierFlux($id, $titre);
         ReponseHttp::envoyerSucces(['qualites' => [$qualite]]);
+    }
+
+    private function sauvegarder(): never
+    {
+        $id = ReponseHttp::lireParametreTexte('id', '', 32);
+        $titre = ReponseHttp::lireParametreTexte('titre', 'audiomack_track', 150);
+        $resultat = $this->fluxAudio->sauvegarderAudio($id, $titre);
+        unset($resultat['chemin_absolu']);
+        ReponseHttp::envoyerSucces(['fichier' => $resultat]);
     }
 
     private function flux(bool $telechargement): never

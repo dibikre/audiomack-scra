@@ -63,8 +63,19 @@ final class Formatage
 
     public static function nettoyerNomFichier(string $nom): string
     {
-        $propre = preg_replace('/[^a-zA-Z0-9 \-_]/', '_', $nom) ?: 'audiomack_track';
-        $propre = trim(preg_replace('/_+/', '_', $propre) ?: 'audiomack_track', '_');
+        $texte = trim($nom);
+        if (function_exists('iconv') && $texte !== '') {
+            $converti = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $texte);
+            if (is_string($converti) && $converti !== '') {
+                $texte = $converti;
+            }
+        }
+        $propre = preg_replace('/[^a-zA-Z0-9 \-_]/', '_', $texte) ?: 'audiomack_track';
+        $propre = preg_replace('/\s+/', ' ', $propre) ?: 'audiomack_track';
+        $propre = trim((string) preg_replace('/_+/', '_', $propre), " _-");
+        if (strlen($propre) > 120) {
+            $propre = rtrim(substr($propre, 0, 120), " _-");
+        }
         return $propre !== '' ? $propre : 'audiomack_track';
     }
 

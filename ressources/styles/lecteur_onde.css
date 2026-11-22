@@ -141,6 +141,11 @@
 .lecteur-dock .lecteur-temps-courant { font-size: 1.3rem; }
 .lecteur-dock .lecteur-temps-total { font-size: .9rem; }
 .lecteur-dock .lecteur-outils { grid-area: outils; }
+.dock-telecharger { border-color: var(--rouge); color: var(--rouge); }
+.dock-telecharger:hover:not(:disabled) { background: var(--rouge); color: #fff; }
+.dock-telecharger .spinner { display: none; width: 16px; height: 16px; }
+.dock-telecharger.charge .spinner { display: inline-block; }
+.dock-telecharger.charge .dock-telecharger-icone { display: none; }
 .lecteur-dock .dock-fermer { grid-area: fermer; }
 .lecteur-dock .lecteur-bas { grid-area: onde; }
 .lecteur-dock .lecteur-onde { height: 88px; }

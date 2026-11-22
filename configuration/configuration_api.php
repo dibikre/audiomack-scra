@@ -71,4 +71,9 @@ final class ConfigurationApi
     {
         return dirname(__DIR__) . '/donnees/journaux.log';
     }
+
+    public static function dossierMusiques(): string
+    {
+        return dirname(__DIR__) . '/musiques';
+    }
 }

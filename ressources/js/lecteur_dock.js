@@ -64,6 +64,10 @@ function htmlDock({ titre, artiste, pochette }) {
         <button type="button" class="lecteur-outil" data-role="muet" aria-label="Mute">${ICONES_LECTEUR.volHaut}${ICONES_LECTEUR.volBas}${ICONES_LECTEUR.volMuet}</button>
         <input type="range" class="lecteur-curseur" data-role="volume" min="0" max="100" step="1" value="100" aria-label="Volume" />
       </div>
+      <button type="button" class="lecteur-outil dock-telecharger" data-role="telecharger" aria-label="Download audio" title="Download audio">
+        <span class="spinner" aria-hidden="true"></span>
+        <span class="dock-telecharger-icone">${iconeSvg('telecharger', 17)}</span>
+      </button>
     </div>
     <button type="button" class="lecteur-outil dock-fermer" data-role="fermer" aria-label="Close player">${iconeSvg('fermer', 18)}</button>
     <div class="lecteur-bas">
@@ -133,6 +137,26 @@ function ouvrirDock(donnees, pisteCarte) {
     _lecteurDock.audio.addEventListener(evt, synchroniserCartes);
   });
   dock.querySelector('[data-role="fermer"]').addEventListener('click', fermerDock);
+  const boutonTelecharger = dock.querySelector('[data-role="telecharger"]');
+  const zoneMessage = dock.querySelector('[data-role="message"]');
+  boutonTelecharger.addEventListener('click', async () => {
+    boutonTelecharger.classList.add('charge');
+    boutonTelecharger.disabled = true;
+    zoneMessage.textContent = 'Saving audio to musiques/...';
+    zoneMessage.classList.remove('erreur-lecture');
+    zoneMessage.hidden = false;
+    try {
+      const fichier = await sauvegarderEtTelechargerPiste(donnees.track.id, donnees.track.title);
+      zoneMessage.textContent = `Saved to ${fichier.chemin_relatif}`;
+    } catch (e) {
+      zoneMessage.textContent = `Download error: ${e.message}`;
+      zoneMessage.classList.add('erreur-lecture');
+      afficherNotification(e.message);
+    } finally {
+      boutonTelecharger.classList.remove('charge');
+      boutonTelecharger.disabled = false;
+    }
+  });
   synchroniserCartes();
   _lecteurDock.lire();
 }

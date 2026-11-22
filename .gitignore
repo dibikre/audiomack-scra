@@ -1,0 +1,9 @@
+# Fichiers audio téléchargés localement
+/musiques/
+
+# Environnement et journaux locaux
+.env
+/donnees/*.log
+
+# Dépendances Node
+node_modules/

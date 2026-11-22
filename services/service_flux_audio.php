@@ -9,19 +9,22 @@ final class ServiceFluxAudio
 {
     private ServiceClientAudiomack $client;
     private ServiceHar $serviceHar;
+    private ServiceStockageAudio $stockage;
     private Journalisation $journal;
 
     public function __construct(
         ServiceClientAudiomack $client,
         ServiceHar $serviceHar,
+        ServiceStockageAudio $stockage,
         Journalisation $journal
     ) {
         $this->client = $client;
         $this->serviceHar = $serviceHar;
+        $this->stockage = $stockage;
         $this->journal = $journal;
     }
 
-    public function verifierFlux(string $idPiste): array
+    public function verifierFlux(string $idPiste, string $titre = ''): array
     {
         if (!ctype_digit($idPiste)) {
             throw new InvalidArgumentException('Invalid track identifier.');
@@ -38,16 +41,64 @@ final class ServiceFluxAudio
         $taille = $infosEntete['content_length'];
         $format = str_contains($mime, 'mpeg') || str_contains($urlSignee, '.mp3') ? 'MP3' : 'M4A / AAC';
         $extension = $format === 'MP3' ? 'mp3' : 'm4a';
+        $nomTitre = $titre !== '' ? $titre : ('audiomack_' . $idPiste);
+        $cible = $this->stockage->construireChemin($nomTitre, $extension);
+        $existant = $this->stockage->trouverFichierExistant($nomTitre, $extension);
 
         return [
             'id' => $idPiste,
             'format' => $format,
             'extension' => $extension,
             'mime' => $mime,
-            'size_bytes' => $taille,
+            'size_bytes' => $existant['size_bytes'] ?? $taille,
             'play_uuid' => (string) ($playData['playUuid'] ?? ''),
+            'chemin_relatif' => $cible['chemin_relatif'],
+            'nom_fichier' => $cible['nom_fichier'],
+            'deja_sauvegarde' => $existant !== null,
             'proxy_url' => './api.php?action=telecharger&id=' . urlencode($idPiste),
             'stream_url' => './api.php?action=flux&id=' . urlencode($idPiste),
+        ];
+    }
+
+    public function sauvegarderAudio(string $idPiste, string $titre = ''): array
+    {
+        if (!ctype_digit($idPiste)) {
+            throw new InvalidArgumentException('Invalid track identifier.');
+        }
+
+        $nomTitre = trim($titre) !== '' ? $titre : ('audiomack_' . $idPiste);
+        try {
+            $playData = $this->client->obtenirUrlLecture($idPiste);
+            $urlSignee = (string) ($playData['signedUrl'] ?? '');
+            if ($urlSignee === '') {
+                throw new RuntimeException('Signed stream URL missing.');
+            }
+            $infos = $this->inspecterEntetesFlux($urlSignee);
+            $mime = $infos['content_type'] ?: 'audio/mp4';
+            $extension = str_contains($mime, 'mpeg') || str_contains($urlSignee, '.mp3') ? 'mp3' : 'm4a';
+            $format = $extension === 'mp3' ? 'MP3' : 'M4A / AAC';
+            $binaireHar = $this->serviceHar->extraireAudioIntegre($idPiste);
+            $fichier = $this->stockage->sauvegarderDepuisUrl($urlSignee, $nomTitre, $extension, $binaireHar);
+        } catch (Throwable $erreur) {
+            $binaireHar = $this->serviceHar->extraireAudioIntegre($idPiste);
+            if ($binaireHar === null) {
+                throw $erreur;
+            }
+            $mime = 'audio/mp4';
+            $format = 'M4A / AAC';
+            $fichier = $this->stockage->sauvegarderBinaire($binaireHar, $nomTitre, 'm4a');
+        }
+
+        return [
+            'id' => $idPiste,
+            'format' => $format,
+            'extension' => $fichier['extension'],
+            'mime' => $mime,
+            'size_bytes' => $fichier['size_bytes'],
+            'nom_fichier' => $fichier['nom_fichier'],
+            'chemin_relatif' => $fichier['chemin_relatif'],
+            'chemin_absolu' => $fichier['chemin_absolu'],
+            'url_telechargement' => './api.php?action=telecharger&id=' . urlencode($idPiste) . '&titre=' . urlencode($nomTitre),
         ];
     }
 
@@ -57,18 +108,27 @@ final class ServiceFluxAudio
             ReponseHttp::envoyerErreur('Invalid track identifier.', 400);
         }
 
+        if ($telechargement) {
+            $sauvegarde = $this->sauvegarderAudio($idPiste, $titre);
+            $this->stockage->envoyerFichierLocal(
+                $sauvegarde['chemin_absolu'],
+                $sauvegarde['mime'],
+                $sauvegarde['nom_fichier']
+            );
+        }
+
         try {
             $playData = $this->client->obtenirUrlLecture($idPiste);
             $urlSignee = (string) ($playData['signedUrl'] ?? '');
             if ($urlSignee === '') {
                 throw new RuntimeException('Signed stream URL missing.');
             }
-            $this->relayerUrl($urlSignee, $telechargement, $titre);
+            $this->relayerUrl($urlSignee, false, $titre);
         } catch (Throwable $erreur) {
             $this->journal->avertissement('Echec flux distant, tentative HAR', ['id' => $idPiste, 'erreur' => $erreur->getMessage()]);
             $binaireHar = $this->serviceHar->extraireAudioIntegre($idPiste);
             if ($binaireHar !== null) {
-                $this->envoyerBinaire($binaireHar, 'audio/mp4', $telechargement, $titre, 'm4a');
+                $this->envoyerBinaire($binaireHar, 'audio/mp4', false, $titre, 'm4a');
             }
             ReponseHttp::envoyerErreur('Unable to stream audio: ' . $erreur->getMessage(), 502);
         }

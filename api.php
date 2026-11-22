@@ -15,6 +15,7 @@ require_once __DIR__ . '/services/service_har.php';
 require_once __DIR__ . '/services/service_client_audiomack.php';
 require_once __DIR__ . '/services/service_donnees_artiste.php';
 require_once __DIR__ . '/services/service_analyse_url.php';
+require_once __DIR__ . '/services/service_stockage_audio.php';
 require_once __DIR__ . '/services/service_flux_audio.php';
 require_once __DIR__ . '/controleurs/controleur_audiomack.php';
 
@@ -26,7 +27,8 @@ $serviceHar = new ServiceHar();
 $clientAudiomack = new ServiceClientAudiomack($serviceOAuth, $serviceHar, $journal);
 $serviceDonneesArtiste = new ServiceDonneesArtiste($clientAudiomack, $journal);
 $serviceAnalyse = new ServiceAnalyseUrl($clientAudiomack, $serviceDonneesArtiste);
-$serviceFlux = new ServiceFluxAudio($clientAudiomack, $serviceHar, $journal);
+$serviceStockage = new ServiceStockageAudio(null, $journal);
+$serviceFlux = new ServiceFluxAudio($clientAudiomack, $serviceHar, $serviceStockage, $journal);
 
 $controleur = new ControleurAudiomack($clientAudiomack, $serviceAnalyse, $serviceFlux, $serviceDonneesArtiste, $journal);
 $controleur->traiterRequete();

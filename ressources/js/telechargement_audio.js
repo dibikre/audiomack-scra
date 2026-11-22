@@ -6,6 +6,27 @@ function definirPisteTelechargement(piste) {
   _pisteTelechargement = piste;
 }
 
+function declencherTelechargementNavigateur(url, nomFichier) {
+  const lien = document.createElement('a');
+  lien.href = url;
+  lien.download = nomFichier;
+  document.body.appendChild(lien);
+  lien.click();
+  document.body.removeChild(lien);
+}
+
+async function sauvegarderEtTelechargerPiste(idPiste, titrePiste) {
+  const url = `./api.php?action=sauvegarder&id=${encodeURIComponent(idPiste)}&titre=${encodeURIComponent(titrePiste || 'audiomack_track')}`;
+  const reponse = await fetch(url);
+  const resultat = await reponse.json();
+  if (!reponse.ok || !resultat.success || !resultat.fichier) {
+    throw new Error((resultat && resultat.error) || 'Unable to save audio file.');
+  }
+  const fichier = resultat.fichier;
+  declencherTelechargementNavigateur(fichier.url_telechargement, fichier.nom_fichier);
+  return fichier;
+}
+
 async function demarrerTelechargement(bouton, qualite, titrePiste) {
   bouton.classList.add('charge');
   bouton.disabled = true;
@@ -19,51 +40,18 @@ async function demarrerTelechargement(bouton, qualite, titrePiste) {
   enveloppe.hidden = false;
   enveloppe.classList.remove('termine', 'echec');
   boiteErreur.hidden = true;
-  barre.style.width = '0%';
-  etiquette.textContent = 'Preparing...';
+  barre.style.width = '45%';
+  etiquette.textContent = 'Saving to musiques/...';
 
   try {
-    const url = `${qualite.proxy_url}&titre=${encodeURIComponent(titrePiste || 'audiomack_track')}`;
-    const reponse = await fetch(url);
-    if (!reponse.ok) throw new Error('Unable to download audio stream');
-
-    const total = Number(reponse.headers.get('Content-Length') || qualite.size_bytes || 0);
-    const lecteur = reponse.body ? reponse.body.getReader() : null;
-    const morceaux = [];
-    let recu = 0;
-
-    if (lecteur) {
-      while (true) {
-        const { done, value } = await lecteur.read();
-        if (done) break;
-        morceaux.push(value);
-        recu += value.byteLength;
-        if (total > 0) {
-          const pct = Math.min(100, Math.round((recu / total) * 100));
-          barre.style.width = `${pct}%`;
-          etiquette.textContent = `${pct}% · ${formaterOctets(recu) || ''}`;
-        } else {
-          barre.style.width = '60%';
-          etiquette.textContent = formaterOctets(recu) || 'Downloading...';
-        }
-      }
-    } else {
-      morceaux.push(await reponse.arrayBuffer());
-    }
-
-    const blob = new Blob(morceaux, { type: qualite.mime || 'audio/mp4' });
-    const urlBlob = URL.createObjectURL(blob);
-    const lien = document.createElement('a');
-    lien.href = urlBlob;
-    lien.download = `${(titrePiste || 'audiomack_track').replace(/[^a-z0-9 \-_]/gi, '_')}.${qualite.extension || 'm4a'}`;
-    document.body.appendChild(lien);
-    lien.click();
-    document.body.removeChild(lien);
-    setTimeout(() => URL.revokeObjectURL(urlBlob), 5000);
-
+    const fichier = await sauvegarderEtTelechargerPiste(qualite.id, titrePiste);
     barre.style.width = '100%';
-    etiquette.textContent = 'Saved';
+    etiquette.textContent = `Saved: ${fichier.chemin_relatif}`;
     enveloppe.classList.add('termine');
+    const detail = ligne.querySelector('.qualite-detail');
+    if (detail) {
+      detail.textContent = `${fichier.mime} · Saved in ${fichier.chemin_relatif}`;
+    }
   } catch (e) {
     enveloppe.classList.add('echec');
     etiquette.textContent = 'Failed';
@@ -78,14 +66,18 @@ async function demarrerTelechargement(bouton, qualite, titrePiste) {
 function construireLigneQualite(qualite, titre) {
   const tailleTexte = formaterOctets(qualite.size_bytes);
   const ligne = document.createElement('div');
+  const infoDestination = qualite.chemin_relatif
+    ? `${qualite.mime} · ${qualite.deja_sauvegarde ? 'Saved in' : 'Saves to'} ${qualite.chemin_relatif}`
+    : `${qualite.mime} · Direct Audiomack CDN stream`;
+
   ligne.className = 'ligne-qualite';
   ligne.innerHTML = `
     <div class="format-pastille">${echapperHtml(qualite.extension.toUpperCase())}</div>
     <div>
       <div class="qualite-titre">${echapperHtml(qualite.format)}${tailleTexte ? ` · ${tailleTexte}` : ''}</div>
-      <div class="qualite-detail">${echapperHtml(qualite.mime)} · Direct Audiomack CDN stream</div>
+      <div class="qualite-detail">${echapperHtml(infoDestination)}</div>
       <div class="puces">
-        <span class="puce puce-verte">Available</span>
+        <span class="puce puce-verte">${qualite.deja_sauvegarde ? 'Saved locally' : 'Available'}</span>
         <span class="puce">Signed stream</span>
       </div>
     </div>
@@ -109,7 +101,8 @@ async function chargerQualitesPiste() {
   const liste = parId('liste-qualites');
   if (!_pisteTelechargement) return;
   try {
-    const reponse = await fetch(`./api.php?action=verifier_flux&id=${encodeURIComponent(_pisteTelechargement.id)}`);
+    const url = `./api.php?action=verifier_flux&id=${encodeURIComponent(_pisteTelechargement.id)}&titre=${encodeURIComponent(_pisteTelechargement.title || '')}`;
+    const reponse = await fetch(url);
     const resultat = await reponse.json();
     parId('chargement-qualites')?.remove();
     if (!resultat.success || !Array.isArray(resultat.qualites) || !resultat.qualites.length) {

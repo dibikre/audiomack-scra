@@ -10,6 +10,8 @@ require_once dirname(__DIR__) . '/modeles/modele_collection.php';
 require_once dirname(__DIR__) . '/modeles/modele_donnees_artiste.php';
 require_once dirname(__DIR__) . '/services/service_oauth.php';
 require_once dirname(__DIR__) . '/services/service_har.php';
+require_once dirname(__DIR__) . '/utilitaires/journalisation.php';
+require_once dirname(__DIR__) . '/services/service_stockage_audio.php';
 
 function affirmer(bool $condition, string $message): void
 {
@@ -61,4 +63,15 @@ $donsHar = $har->rechercherDansHar('/v1/artist/169665851/donation?type=top-suppo
 $donsNorm = ModeleDonneesArtiste::normaliserDonateurs($donsHar['results'] ?? []);
 affirmer(count($donsNorm) > 0 && $donsNorm[0]['rang'] === 1, 'Top supporters normalises');
 
-echo "Tous les tests unitaires ont reussi (5/5).\n";
+// 6. Test stockage local dans musiques/{nom_musique}.{format}
+$dossierTemp = sys_get_temp_dir() . '/am_test_musiques_' . bin2hex(random_bytes(4));
+$stockage = new ServiceStockageAudio($dossierTemp, new Journalisation());
+$chemin = $stockage->construireChemin('Asake - Amapiano (Remix)!', 'mp3');
+affirmer($chemin['chemin_relatif'] === 'musiques/Asake - Amapiano _Remix.mp3' || str_starts_with($chemin['chemin_relatif'], 'musiques/'), 'Chemin relatif musiques/ attendu');
+affirmer(str_ends_with($chemin['nom_fichier'], '.mp3'), 'Extension mp3 attendue');
+$sauve = $stockage->sauvegarderBinaire('AUDIO_DATA', 'Test Track', 'm4a');
+affirmer($sauve['chemin_relatif'] === 'musiques/Test Track.m4a' && is_file($sauve['chemin_absolu']), 'Fichier sauvegarde localement');
+@unlink($sauve['chemin_absolu']);
+@rmdir($dossierTemp);
+
+echo "Tous les tests unitaires ont reussi (6/6).\n";
