@@ -1,0 +1,147 @@
+/* Page Artiste dédiée et liens cliquables */
+.lien-artiste {
+  display: inline;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color .15s;
+}
+.lien-artiste:hover { color: var(--rouge); text-decoration: underline; }
+.lien-artiste-signature { display: inline-flex; align-items: center; gap: .6rem; white-space: normal; }
+.lien-artiste:focus-visible { outline: 2px solid var(--rouge); outline-offset: 2px; border-radius: 4px; }
+.artiste-identite { flex: 1; min-width: 0; }
+.bouton-profil-artiste { padding: .5rem 1rem; font-size: .88rem; }
+
+.artiste-hero {
+  overflow: hidden;
+  background: var(--voile);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon-grand);
+}
+.artiste-banniere-cadre {
+  width: 100%;
+  height: clamp(130px, 22vw, 210px);
+  background: linear-gradient(135deg, #ececf2, #f8e8ea);
+  overflow: hidden;
+}
+.artiste-banniere-img { width: 100%; height: 100%; object-fit: cover; }
+.artiste-hero-corps { padding: 0 clamp(1.25rem, 3vw, 2rem) clamp(1.5rem, 3vw, 2rem); }
+.artiste-hero-sommet {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1.25rem;
+  margin-top: -42px;
+}
+.artiste-avatar-grand {
+  flex: none;
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  background: #fff;
+  border: 4px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 12px 28px -12px rgba(28, 28, 33, .4);
+}
+.artiste-avatar-vide { display: grid; place-items: center; color: #b5b5c0; }
+.artiste-hero-identite { flex: 1; min-width: 200px; padding-top: 46px; }
+.artiste-hero-nom {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  margin: 0;
+  font: 800 clamp(1.6rem, 3.4vw, 2.3rem)/1.1 var(--police-titre);
+  letter-spacing: -.03em;
+}
+.artiste-hero-pseudo { margin: .15rem 0 .65rem; color: var(--encre-douce); font-weight: 600; }
+.artiste-hero-actions { padding-top: 46px; }
+
+.stats-artiste-grille {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+  gap: 1.15rem 1.5rem;
+  margin-top: 1.75rem;
+  padding-top: 1.35rem;
+  border-top: 1px solid var(--trait);
+}
+.artiste-bio { max-width: 72ch; margin: 1.25rem 0 0; color: var(--encre-douce); white-space: pre-line; }
+.artiste-liens-sociaux { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1.1rem; }
+.lien-social-artiste { gap: .35rem; text-decoration: none; transition: border-color .15s, color .15s; }
+.lien-social-artiste:hover { border-color: var(--rouge); color: var(--rouge); }
+
+.artiste-sous-titre { margin: 0 0 .25rem; font: 700 1.15rem/1.25 var(--police-titre); letter-spacing: -.015em; }
+.artiste-section-epingles { display: grid; gap: .75rem; }
+.artiste-explorateur { display: grid; gap: 1.25rem; }
+
+.barre-onglets-artiste {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: .5rem;
+  overflow-x: auto;
+  padding-bottom: .35rem;
+  border-bottom: 1px solid var(--trait);
+}
+.onglet-artiste {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  padding: .55rem 1rem;
+  border: 1.5px solid transparent;
+  border-radius: 999px;
+  background: var(--voile);
+  color: var(--encre-douce);
+  font-weight: 700;
+  font-size: .92rem;
+  cursor: pointer;
+  transition: background-color .15s, color .15s, border-color .15s;
+}
+.onglet-artiste:hover { color: var(--encre); border-color: var(--trait-fort); }
+.onglet-artiste.actif { background: var(--rouge); color: #fff; }
+.onglet-compte {
+  padding: .05rem .45rem;
+  border-radius: 999px;
+  background: rgba(28, 28, 33, .08);
+  font-size: .78rem;
+  font-variant-numeric: tabular-nums;
+}
+.onglet-artiste.actif .onglet-compte { background: rgba(255, 255, 255, .22); color: #fff; }
+
+.artiste-bloc-soutiens { display: grid; gap: 2rem; }
+.liste-donateurs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: .85rem;
+  margin: .85rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.carte-donateur {
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+  padding: .75rem .95rem;
+  background: #fff;
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon-moyen);
+}
+.donateur-rang { min-width: 2rem; color: var(--rouge); font: 800 1rem var(--police-titre); }
+.avatar-donateur { width: 44px; height: 44px; }
+.donateur-info { display: grid; min-width: 0; gap: .1rem; }
+.donateur-nom { display: inline-flex; align-items: center; gap: .3rem; font-weight: 700; }
+.donateur-meta { color: var(--encre-douce); font-size: .82rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+@media (max-width: 640px) {
+  .artiste-hero-sommet { margin-top: -34px; }
+  .artiste-avatar-grand { width: 76px; height: 76px; }
+  .artiste-hero-identite, .artiste-hero-actions { padding-top: 0; flex-basis: 100%; }
+}

@@ -10,9 +10,14 @@ function htmlPiste(donnees) {
     : `<div class="pochette pochette-vide">${iconeSvg('note', 56)}</div>`;
 
   const nomArtiste = (artiste && artiste.name) || piste.artist_display;
-  const signature = nomArtiste
-    ? `<p class="piste-artiste">${artiste && artiste.avatar_url ? `<img class="avatar avatar-mini" src="${echapperHtml(artiste.avatar_url)}" alt="" />` : ''}<span>${echapperHtml(nomArtiste)}</span></p>`
+  const slugArtiste = (artiste && artiste.url_slug) || piste.uploader_slug || '';
+  const avatarMini = artiste && artiste.avatar_url
+    ? `<img class="avatar avatar-mini" src="${echapperHtml(artiste.avatar_url)}" alt="" />`
     : '';
+  const contenuSignature = slugArtiste
+    ? `<button type="button" class="lien-artiste lien-artiste-signature" data-artiste-slug="${echapperHtml(slugArtiste)}">${avatarMini}<span>${echapperHtml(nomArtiste)}</span></button>`
+    : `${avatarMini}<span>${echapperHtml(nomArtiste)}</span>`;
+  const signature = nomArtiste ? `<p class="piste-artiste">${contenuSignature}</p>` : '';
 
   const puces = [piste.genre, piste.duration_human, piste.explicit ? 'Explicit' : null]
     .filter(Boolean)
@@ -75,16 +80,21 @@ function htmlArtiste(artiste) {
     ? `<div class="puces">${etiquettes.map((b) => `<span class="puce">${echapperHtml(b)}</span>`).join('')}</div>`
     : '';
 
+  const boutonProfil = artiste.url_slug
+    ? `<button type="button" class="bouton bouton-secondaire bouton-profil-artiste" data-artiste-slug="${echapperHtml(artiste.url_slug)}">${iconeSvg('utilisateur', 16)}Open artist page</button>`
+    : '';
+
   return `<section class="rubrique">
     <h2 class="rubrique-titre">Artist</h2>
     <div>
       ${banniere}
       <div class="artiste-entete">
         ${avatar}
-        <div>
+        <div class="artiste-identite">
           <div class="artiste-nom">${echapperHtml(artiste.name)}${artiste.verified ? ICONE_VERIFIE : ''}</div>
           <div class="artiste-pseudo">@${echapperHtml(artiste.url_slug)}</div>
         </div>
+        ${boutonProfil}
         ${htmlEtiquettes}
       </div>
       <dl class="stats-artiste">
@@ -133,24 +143,31 @@ function htmlCartePiste(piste, indice) {
     ? `<img src="${echapperHtml(piste.pochette)}" alt="" loading="lazy" />`
     : `<span class="carte-pochette-vide">${iconeSvg('note', 40)}</span>`;
   const rondLecture = '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="margin-left:2px"><path d="M8 5.5v13l11-6.5z"/></svg>';
-  const ecoutes = piste.ecoutes != null ? `<p class="carte-meta">${formaterNombre(piste.ecoutes)} plays</p>` : '';
-  const estAlbum = piste.type === 'album';
-  return `<li class="carte-piste" data-indice="${indice}" data-url="${echapperHtml(piste.url)}">
+  const ecoutes = piste.ecoutes != null && piste.ecoutes > 0
+    ? `<p class="carte-meta">${formaterNombre(piste.ecoutes)} plays</p>`
+    : (piste.mis_a_jour ? `<p class="carte-meta">Updated ${echapperHtml(piste.mis_a_jour)}</p>` : '');
+  const estCollection = piste.type === 'album' || piste.type === 'playlist';
+  const libelleSecondaire = piste.type === 'playlist' ? 'Playlist' : (piste.type === 'album' ? 'Album' : 'Listen');
+  const artisteHtml = piste.artiste_slug
+    ? `<button type="button" class="lien-artiste" data-artiste-slug="${echapperHtml(piste.artiste_slug)}">${echapperHtml(piste.artiste || piste.artiste_slug)}</button>`
+    : echapperHtml(piste.artiste || '');
+
+  return `<li class="carte-piste" data-indice="${indice}" data-type="${echapperHtml(piste.type || 'song')}" data-url="${echapperHtml(piste.url)}">
     <div class="carte-pochette">
       ${pochette}
-      <span class="carte-lecture" aria-hidden="true"><span class="carte-lecture-rond">${rondLecture}<span class="carte-egaliseur"><i></i><i></i><i></i><i></i></span></span></span>
+      ${!estCollection ? `<span class="carte-lecture" aria-hidden="true"><span class="carte-lecture-rond">${rondLecture}<span class="carte-egaliseur"><i></i><i></i><i></i><i></i></span></span></span>` : ''}
       ${piste.duree ? `<span class="carte-duree">${echapperHtml(piste.duree)}</span>` : ''}
     </div>
     <div class="carte-texte">
       <h3 class="carte-titre">${echapperHtml(piste.titre)}</h3>
-      <p class="carte-artiste">${echapperHtml(piste.artiste)}</p>
+      <p class="carte-artiste">${artisteHtml}</p>
       ${ecoutes}
     </div>
     <div class="carte-actions">
       <button type="button" class="bouton bouton-primaire bouton-analyser" aria-label="Analyze ${echapperHtml(piste.titre)}">Analyze</button>
-      <button type="button" class="bouton bouton-contour bouton-ecouter" aria-pressed="false" ${estAlbum ? 'disabled' : ''}>
+      <button type="button" class="bouton bouton-contour bouton-ecouter" aria-pressed="false" ${estCollection ? 'disabled' : ''}>
         <span class="spinner" aria-hidden="true"></span>
-        <span class="bouton-libelle">${iconeSvg('lire', 16)}${estAlbum ? 'Album' : 'Listen'}</span>
+        <span class="bouton-libelle">${estCollection ? '' : iconeSvg('lire', 16)}${libelleSecondaire}</span>
       </button>
     </div>
   </li>`;
@@ -162,6 +179,7 @@ function htmlCollection(collection) {
     type: 'song',
     titre: `${t.index}. ${t.title}`,
     artiste: t.artist || collection.artist_display,
+    artiste_slug: t.uploader_slug || '',
     url: t.url,
     pochette: t.artwork_url || collection.artwork_url,
     duree: t.duration_human,

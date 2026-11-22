@@ -10,17 +10,20 @@ final class ControleurAudiomack
     private ServiceClientAudiomack $client;
     private ServiceAnalyseUrl $analyseUrl;
     private ServiceFluxAudio $fluxAudio;
+    private ServiceDonneesArtiste $donneesArtiste;
     private Journalisation $journal;
 
     public function __construct(
         ServiceClientAudiomack $client,
         ServiceAnalyseUrl $analyseUrl,
         ServiceFluxAudio $fluxAudio,
+        ServiceDonneesArtiste $donneesArtiste,
         Journalisation $journal
     ) {
         $this->client = $client;
         $this->analyseUrl = $analyseUrl;
         $this->fluxAudio = $fluxAudio;
+        $this->donneesArtiste = $donneesArtiste;
         $this->journal = $journal;
     }
 
@@ -31,6 +34,8 @@ final class ControleurAudiomack
         try {
             match ($action) {
                 'analyser' => $this->analyser(),
+                'artiste' => $this->artiste(),
+                'contenu_artiste' => $this->contenuArtiste(),
                 'rechercher' => $this->rechercher(),
                 'suggestions' => $this->suggestions(),
                 'verifier_flux' => $this->verifierFlux(),
@@ -58,6 +63,28 @@ final class ControleurAudiomack
 
         $donnees = $this->analyseUrl->analyserUrl($url);
         ReponseHttp::envoyerSucces(['data' => $donnees]);
+    }
+
+    private function artiste(): never
+    {
+        $slug = ReponseHttp::lireParametreTexte('slug', '', 120);
+        if ($slug === '') {
+            ReponseHttp::envoyerErreur('Please specify an artist slug.', 400);
+        }
+
+        $donnees = $this->donneesArtiste->obtenirPageArtisteComplete($slug);
+        ReponseHttp::envoyerSucces(['data' => $donnees]);
+    }
+
+    private function contenuArtiste(): never
+    {
+        $slug = ReponseHttp::lireParametreTexte('slug', '', 120);
+        $id = ReponseHttp::lireParametreTexte('id', '', 32);
+        $onglet = ReponseHttp::lireParametreTexte('onglet', 'pistes', 40);
+        $page = ReponseHttp::lireParametreEntier('page', 1, 1, 50);
+
+        $donnees = $this->donneesArtiste->obtenirOngletArtiste($slug, $id, $onglet, $page);
+        ReponseHttp::envoyerSucces($donnees);
     }
 
     private function rechercher(): never

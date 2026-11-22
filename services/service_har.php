@@ -7,28 +7,41 @@ declare(strict_types=1);
  */
 final class ServiceHar
 {
-    private string $cheminHar;
-    private ?array $entreesCache = null;
+    /** @var list<string> */
+    private array $cheminsHar;
+    /** @var array<string, list<array>> */
+    private array $entreesParFichier = [];
 
-    public function __construct(?string $cheminHar = null)
+    /**
+     * @param string|list<string>|null $cheminsHar
+     */
+    public function __construct(string|array|null $cheminsHar = null)
     {
-        $this->cheminHar = $cheminHar ?? ConfigurationApi::cheminHar();
+        if (is_string($cheminsHar)) {
+            $this->cheminsHar = [$cheminsHar];
+        } elseif (is_array($cheminsHar)) {
+            $this->cheminsHar = array_values($cheminsHar);
+        } else {
+            $this->cheminsHar = ConfigurationApi::cheminsHar();
+        }
     }
 
     public function rechercherDansHar(string $cheminEndpoint, ?string $motCle = null): ?array
     {
-        $entrees = $this->chargerEntrees();
-        foreach ($entrees as $entree) {
-            $url = (string) ($entree['request']['url'] ?? '');
-            if (!str_contains($url, $cheminEndpoint)) {
-                continue;
-            }
-            if ($motCle !== null && $motCle !== '' && !str_contains(strtolower($url), strtolower($motCle))) {
-                continue;
-            }
-            $contenu = $this->extraireContenuJson($entree);
-            if ($contenu !== null) {
-                return $contenu;
+        foreach ($this->cheminsHar as $chemin) {
+            $entrees = $this->chargerEntrees($chemin);
+            foreach ($entrees as $entree) {
+                $url = (string) ($entree['request']['url'] ?? '');
+                if (!str_contains($url, $cheminEndpoint)) {
+                    continue;
+                }
+                if ($motCle !== null && $motCle !== '' && !str_contains(strtolower($url), strtolower($motCle))) {
+                    continue;
+                }
+                $contenu = $this->extraireContenuJson($entree);
+                if ($contenu !== null) {
+                    return $contenu;
+                }
             }
         }
         return null;
@@ -39,36 +52,41 @@ final class ServiceHar
         if ($identifiantPiste !== '24088244') {
             return null;
         }
-        $entrees = $this->chargerEntrees();
-        foreach ($entrees as $entree) {
-            $mime = (string) ($entree['response']['content']['mimeType'] ?? '');
-            $texte = (string) ($entree['response']['content']['text'] ?? '');
-            $encodage = (string) ($entree['response']['content']['encoding'] ?? '');
-            if (str_starts_with($mime, 'audio/') && $texte !== '' && $encodage === 'base64') {
-                $binaire = base64_decode($texte, true);
-                return $binaire !== false ? $binaire : null;
+        foreach ($this->cheminsHar as $chemin) {
+            $entrees = $this->chargerEntrees($chemin);
+            foreach ($entrees as $entree) {
+                $mime = (string) ($entree['response']['content']['mimeType'] ?? '');
+                $texte = (string) ($entree['response']['content']['text'] ?? '');
+                $encodage = (string) ($entree['response']['content']['encoding'] ?? '');
+                if (str_starts_with($mime, 'audio/') && $texte !== '' && $encodage === 'base64') {
+                    $binaire = base64_decode($texte, true);
+                    return $binaire !== false ? $binaire : null;
+                }
             }
         }
         return null;
     }
 
-    private function chargerEntrees(): array
+    /**
+     * @return list<array>
+     */
+    private function chargerEntrees(string $chemin): array
     {
-        if ($this->entreesCache !== null) {
-            return $this->entreesCache;
+        if (isset($this->entreesParFichier[$chemin])) {
+            return $this->entreesParFichier[$chemin];
         }
-        if (!is_file($this->cheminHar)) {
-            $this->entreesCache = [];
+        if (!is_file($chemin)) {
+            $this->entreesParFichier[$chemin] = [];
             return [];
         }
-        $contenu = @file_get_contents($this->cheminHar);
+        $contenu = @file_get_contents($chemin);
         if ($contenu === false) {
-            $this->entreesCache = [];
+            $this->entreesParFichier[$chemin] = [];
             return [];
         }
         $json = json_decode($contenu, true);
-        $this->entreesCache = is_array($json['log']['entries'] ?? null) ? $json['log']['entries'] : [];
-        return $this->entreesCache;
+        $this->entreesParFichier[$chemin] = is_array($json['log']['entries'] ?? null) ? $json['log']['entries'] : [];
+        return $this->entreesParFichier[$chemin];
     }
 
     private function extraireContenuJson(array $entree): ?array

@@ -78,6 +78,7 @@ function htmlDock({ titre, artiste, pochette }) {
 function synchroniserCartes() {
   const enLecture = Boolean(_lecteurDock && _lecteurDock.enLecture);
   document.querySelectorAll('.carte-piste').forEach((carte) => {
+    if (carte.dataset.type === 'album' || carte.dataset.type === 'playlist') return;
     const courante = Boolean(_pisteDock && _pisteDock.url === carte.dataset.url);
     const charge = _chargementDock === carte.dataset.url;
     const joue = courante && enLecture;

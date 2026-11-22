@@ -82,6 +82,11 @@ function afficherResultatsAnalyse(donnees) {
   detruireLecteurPrincipal();
   _collectionActive = null;
 
+  if (donnees.kind === 'artist' && donnees.artist) {
+    afficherPageArtiste(donnees);
+    return;
+  }
+
   let html = '';
   if (donnees.track) html += htmlPiste(donnees);
   if (donnees.artist) html += htmlArtiste(donnees.artist);
@@ -196,18 +201,22 @@ parId('formulaire').addEventListener('submit', (e) => {
 
 champRecherche.addEventListener('input', majLibelleLancement);
 
+function ouvrirAnalyseDepuisCarte(url) {
+  champRecherche.value = url;
+  majLibelleLancement();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  lancerAnalyseUrl();
+}
+
 parId('resultats-recherche').addEventListener('click', (e) => {
+  const lienArtiste = e.target.closest('.lien-artiste[data-artiste-slug]');
+  if (lienArtiste) { ouvrirPageArtiste(lienArtiste.dataset.artisteSlug); return; }
+
   const carte = e.target.closest('.carte-piste');
   if (carte && _rechercheActive) {
     const piste = _rechercheActive.pistes[Number(carte.dataset.indice)];
     if (e.target.closest('.bouton-ecouter, .carte-pochette') && piste.type !== 'album') { ecouterCarte(piste); return; }
-    if (e.target.closest('.bouton-analyser')) {
-      champRecherche.value = piste.url;
-      majLibelleLancement();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      lancerAnalyseUrl();
-      return;
-    }
+    if (e.target.closest('.bouton-analyser')) { ouvrirAnalyseDepuisCarte(piste.url); return; }
   }
   const boutonPlus = e.target.closest('#bouton-plus');
   if (boutonPlus) afficherPlusDeTitres(boutonPlus);
@@ -222,32 +231,19 @@ parId('resultats').addEventListener('click', async (e) => {
     majLibelleLancement();
     return;
   }
+  const lienArtiste = e.target.closest('[data-artiste-slug]');
+  if (lienArtiste) { ouvrirPageArtiste(lienArtiste.dataset.artisteSlug); return; }
+  if (gererClicPageArtiste(e)) return;
+
   const carte = e.target.closest('#liste-collection .carte-piste');
   if (carte && _collectionActive) {
     const piste = _collectionActive[Number(carte.dataset.indice)];
     if (e.target.closest('.bouton-ecouter, .carte-pochette')) { ecouterCarte(piste); return; }
-    if (e.target.closest('.bouton-analyser')) {
-      champRecherche.value = piste.url;
-      majLibelleLancement();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      lancerAnalyseUrl();
-      return;
-    }
+    if (e.target.closest('.bouton-analyser')) { ouvrirAnalyseDepuisCarte(piste.url); return; }
   }
-  const bouton = e.target.closest('.bouton-copier');
-  if (!bouton) return;
-  try { await navigator.clipboard.writeText(bouton.dataset.copie || ''); } catch (_) { return; }
-  const libelle = bouton.querySelector('span');
-  const original = libelle.textContent;
-  bouton.classList.add('copie');
-  libelle.textContent = 'Copied';
-  setTimeout(() => { bouton.classList.remove('copie'); libelle.textContent = original; }, 1500);
+  gererCopiePressePapier(e.target.closest('.bouton-copier'));
 });
 
 let minuteurResize = null;
-window.addEventListener('resize', () => {
-  clearTimeout(minuteurResize);
-  minuteurResize = setTimeout(genererOndesHero, 150);
-});
-
+window.addEventListener('resize', () => { clearTimeout(minuteurResize); minuteurResize = setTimeout(genererOndesHero, 150); });
 genererOndesHero();

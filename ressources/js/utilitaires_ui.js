@@ -48,6 +48,7 @@ const CHEMINS_ICONES = {
   lire: '<path d="M6.5 4.5v11l9-5.5z" fill="currentColor"/>',
   pause: '<path d="M7 4.5v11M13 4.5v11" stroke-width="2.6"/>',
   fermer: '<path d="M5 5l10 10M15 5L5 15"/>',
+  utilisateur: '<circle cx="10" cy="6.5" r="3"/><path d="M4.5 16.5a5.5 5.5 0 0 1 11 0"/>',
 };
 
 const iconeSvg = (nom, taille = 18) => (
@@ -113,4 +114,14 @@ function genererOndesHero() {
   conteneur.replaceChildren(fragment);
   ondesAnimees = true;
   mettreAJourOndes(pourcentageOndes);
+}
+
+async function gererCopiePressePapier(bouton) {
+  if (!bouton) return;
+  try { await navigator.clipboard.writeText(bouton.dataset.copie || ''); } catch (_) { return; }
+  const libelle = bouton.querySelector('span');
+  const original = libelle.textContent;
+  bouton.classList.add('copie');
+  libelle.textContent = 'Copied';
+  setTimeout(() => { bouton.classList.remove('copie'); libelle.textContent = original; }, 1500);
 }

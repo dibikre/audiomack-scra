@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="./ressources/styles/base.css" />
   <link rel="stylesheet" href="./ressources/styles/cartes_et_details.css" />
   <link rel="stylesheet" href="./ressources/styles/lecteur_onde.css" />
+  <link rel="stylesheet" href="./ressources/styles/page_artiste.css" />
 </head>
 <body>
   <div class="page" id="page">
@@ -52,6 +53,8 @@
   <script src="./ressources/js/lecteur_dock.js"></script>
   <script src="./ressources/js/telechargement_audio.js"></script>
   <script src="./ressources/js/rendu_resultats.js"></script>
+  <script src="./ressources/js/rendu_page_artiste.js"></script>
+  <script src="./ressources/js/page_artiste.js"></script>
   <script src="./ressources/js/suggestions_recherche.js"></script>
   <script src="./ressources/js/application.js"></script>
 </body>

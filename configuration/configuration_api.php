@@ -56,6 +56,17 @@ final class ConfigurationApi
         return dirname(__DIR__) . '/skills-api-audiomack.har';
     }
 
+    /**
+     * @return list<string>
+     */
+    public static function cheminsHar(): array
+    {
+        return [
+            dirname(__DIR__) . '/skills-api-audiomack.har',
+            dirname(__DIR__) . '/skill-artiste-data.har',
+        ];
+    }
+
     public static function cheminJournaux(): string
     {
         return dirname(__DIR__) . '/donnees/journaux.log';

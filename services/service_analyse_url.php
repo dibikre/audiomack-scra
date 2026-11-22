@@ -8,10 +8,12 @@ declare(strict_types=1);
 final class ServiceAnalyseUrl
 {
     private ServiceClientAudiomack $client;
+    private ServiceDonneesArtiste $donneesArtiste;
 
-    public function __construct(ServiceClientAudiomack $client)
+    public function __construct(ServiceClientAudiomack $client, ServiceDonneesArtiste $donneesArtiste)
     {
         $this->client = $client;
+        $this->donneesArtiste = $donneesArtiste;
     }
 
     public function analyserUrl(string $urlBrute): array
@@ -33,7 +35,7 @@ final class ServiceAnalyseUrl
                 $this->client->obtenirPlaylist($cible['artiste'], $cible['slug']),
                 'playlist'
             ),
-            'artist' => $this->chargerProfilArtiste($cible['artiste']),
+            'artist' => $this->donneesArtiste->obtenirPageArtisteComplete($cible['artiste']),
         };
     }
 
@@ -116,65 +118,6 @@ final class ServiceAnalyseUrl
             'track' => null,
             'artist' => ModeleArtiste::normaliser($artisteBrut),
             'collection' => $collection,
-        ];
-    }
-
-    private function chargerProfilArtiste(string $slugArtiste): array
-    {
-        $artisteBrut = $this->client->obtenirArtiste($slugArtiste);
-        if (empty($artisteBrut['id'])) {
-            throw new RuntimeException('Artist profile not found on Audiomack.');
-        }
-        $artiste = ModeleArtiste::normaliser($artisteBrut);
-        $pistesPopulaires = [];
-
-        try {
-            $contenu = $this->client->requeteGet('/search_artist_content', [
-                'artist_id' => (string) $artisteBrut['id'],
-                'type' => 'songs',
-                'sort' => 'rank',
-                'page' => '1',
-            ]);
-            foreach (($contenu['results'] ?? []) as $index => $item) {
-                if (!is_array($item)) {
-                    continue;
-                }
-                $piste = ModelePiste::normaliser($item);
-                $pistesPopulaires[] = [
-                    'index' => $index + 1,
-                    'id' => $piste['id'],
-                    'title' => $piste['title'],
-                    'artist' => $piste['artist_display'],
-                    'duration_s' => $piste['duration_s'],
-                    'duration_human' => $piste['duration_human'],
-                    'isrc' => $piste['publisher']['isrc'] ?? '',
-                    'producer' => $piste['publisher']['producer'] ?? '',
-                    'url' => $piste['permalink_url'] ?? '',
-                    'artwork_url' => $piste['artwork_thumb'],
-                ];
-            }
-        } catch (Throwable) {
-            $pistesPopulaires = [];
-        }
-
-        return [
-            'kind' => 'artist',
-            'track' => null,
-            'artist' => $artiste,
-            'collection' => [
-                'id' => $artiste['id'] ?? '',
-                'type' => 'artist_top',
-                'title' => 'Top Tracks by ' . ($artiste['name'] ?? $slugArtiste),
-                'artist_display' => $artiste['name'] ?? $slugArtiste,
-                'genre' => $artiste['genre'] ?? '',
-                'artwork_url' => $artiste['avatar_url'] ?? null,
-                'permalink_url' => $artiste['permalink_url'] ?? null,
-                'released_at' => null,
-                'track_count' => count($pistesPopulaires),
-                'playback_count' => $artiste['plays_count'] ?? null,
-                'likes_count' => null,
-                'tracks' => $pistesPopulaires,
-            ],
         ];
     }
 }

@@ -81,6 +81,8 @@ final class ModelePiste
             'type' => $type,
             'titre' => $piste['title'],
             'artiste' => $piste['artist_display'],
+            'artiste_slug' => $piste['uploader_slug'],
+            'artiste_url' => $piste['uploader_slug'] !== '' ? 'https://audiomack.com/' . $piste['uploader_slug'] : null,
             'url' => $piste['permalink_url'],
             'pochette' => $piste['artwork_url'],
             'duree' => $type === 'song' ? $piste['duration_human'] : 'Album',
