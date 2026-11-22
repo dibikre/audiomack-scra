@@ -1,0 +1,10 @@
+{
+  "name": "audiomack-scra",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "node demarrage.mjs",
+    "build": "node -e \"const {execSync}=require('child_process'); execSync('find . -maxdepth 3 -name \\\"*.php\\\" -not -path \\\"./node_modules/*\\\" -print0 | xargs -0 -n1 php -l', {stdio:'inherit'});\"",
+    "lint": "node -e \"const {execSync}=require('child_process'); execSync('find . -maxdepth 3 -name \\\"*.php\\\" -not -path \\\"./node_modules/*\\\" -print0 | xargs -0 -n1 php -l', {stdio:'inherit'});\""
+  }
+}

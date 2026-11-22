@@ -1,0 +1,215 @@
+.resultats { display: grid; gap: 3rem; margin-top: 2.25rem; animation: apparition .5s var(--courbe) both; }
+@keyframes apparition { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+.vide {
+  padding: 2rem;
+  border: 1px dashed var(--trait-fort);
+  border-radius: var(--rayon-moyen);
+  color: var(--encre-douce);
+  text-align: center;
+}
+
+.puces { display: flex; flex-wrap: wrap; gap: .5rem; }
+.puce {
+  display: inline-flex;
+  align-items: center;
+  padding: .2rem .75rem;
+  background: #fff;
+  border: 1px solid var(--trait);
+  border-radius: 999px;
+  color: var(--encre-douce);
+  font-size: .85rem;
+  font-weight: 600;
+}
+.puce-rouge { background: var(--rouge-pale); border-color: var(--rouge-bord); color: var(--rouge-fonce); }
+.puce-verte { background: var(--vert-pale); border-color: var(--vert-bord); color: var(--vert); }
+
+/* Fiche piste / collection */
+.piste {
+  --trait: #e3e3e9;
+  display: grid;
+  grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
+  gap: 2rem 2.75rem;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  background: var(--voile);
+  border-radius: var(--rayon-grand);
+}
+.pochette {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  background: #ececf1;
+  border-radius: var(--rayon-image);
+  box-shadow: 0 18px 40px -18px rgba(28, 28, 33, .4);
+}
+.pochette-vide { display: grid; place-items: center; color: #c3c3cc; }
+.piste-artiste { display: flex; align-items: center; gap: .6rem; margin: 0; color: var(--encre-douce); font-weight: 600; }
+.piste-titre {
+  margin: .6rem 0 1rem;
+  font: 800 clamp(1.8rem, 4vw, 2.9rem)/1.05 var(--police-titre);
+  letter-spacing: -.03em;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+.piste-description { max-width: 62ch; margin: 1.1rem 0 0; color: var(--encre-douce); white-space: pre-line; }
+.piste-actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.5rem; }
+.piste-details { grid-column: 1 / -1; margin-top: .25rem; }
+
+.stats-piste { display: flex; flex-wrap: wrap; gap: 1.25rem 2.5rem; margin-top: 1.6rem; }
+.stat { display: flex; flex-direction: column-reverse; }
+.stat dt { color: var(--encre-douce); font-size: .85rem; }
+.stat dd { margin: 0; font: 700 1.6rem/1.15 var(--police-titre); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+
+/* Qualités de téléchargement */
+.qualites { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .4s var(--courbe); }
+.qualites.ouvert { grid-template-rows: 1fr; }
+.qualites-interieur { min-height: 0; overflow: hidden; visibility: hidden; transition: visibility 0s .4s; }
+.qualites.ouvert .qualites-interieur { visibility: visible; transition-delay: 0s; }
+.liste-qualites { display: grid; gap: .6rem; padding-top: 1.25rem; }
+.qualite-chargement { display: flex; align-items: center; gap: .7rem; color: var(--encre-douce); }
+.ligne-qualite {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: .85rem 1rem;
+  padding: .85rem 1rem;
+  background: #fff;
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon-moyen);
+}
+.format-pastille {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 48px;
+  background: var(--voile);
+  border-radius: 12px;
+  font: 700 .78rem var(--police-titre);
+  text-align: center;
+}
+.qualite-titre { font-weight: 700; }
+.qualite-detail { margin-bottom: .4rem; color: var(--encre-douce); font-size: .85rem; overflow-wrap: anywhere; }
+.ligne-qualite .puce { padding: .05rem .6rem; font-size: .78rem; }
+.progression-telechargement { grid-column: 1 / -1; display: flex; align-items: center; gap: .75rem; }
+.progression-fond { flex: 1; height: 6px; overflow: hidden; background: var(--trait); border-radius: 99px; }
+.progression-barre { width: 0; height: 100%; background: var(--rouge); border-radius: 99px; transition: width .15s ease; }
+.progression-etiquette { min-width: 8.5rem; color: var(--encre-douce); font-size: .8rem; text-align: right; font-variant-numeric: tabular-nums; }
+.progression-telechargement.termine .progression-barre { background: var(--vert); }
+.progression-telechargement.termine .progression-etiquette { color: var(--vert); font-weight: 700; }
+.progression-telechargement.echec .progression-barre { background: var(--rouge-fonce); }
+.progression-telechargement.echec .progression-etiquette { color: var(--rouge-fonce); font-weight: 700; }
+.qualite-erreur { grid-column: 1 / -1; margin: 0; color: var(--rouge-fonce); font-size: .85rem; }
+
+/* Rubriques artiste, éditeur, collection */
+.rubrique { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 1.5rem 3rem; padding-top: 2.25rem; border-top: 1px solid var(--trait); }
+.rubrique-titre { margin: 0; font: 700 1.35rem/1.2 var(--police-titre); letter-spacing: -.02em; }
+.banniere { width: 100%; height: 140px; margin-bottom: 1.5rem; object-fit: cover; border-radius: var(--rayon-moyen); }
+.artiste-entete { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; }
+.avatar { flex: none; width: 72px; height: 72px; object-fit: cover; background: var(--voile); border: 1px solid var(--trait); border-radius: 50%; }
+.avatar-mini { width: 28px; height: 28px; }
+.artiste-nom { display: flex; align-items: center; gap: .4rem; font: 700 1.35rem/1.2 var(--police-titre); letter-spacing: -.02em; }
+.artiste-pseudo { color: var(--encre-douce); }
+.artiste-entete .puces { flex-basis: 100%; }
+.stats-artiste { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 1.5rem; margin: 1.75rem 0; }
+
+.details { border-top: 1px solid var(--trait); }
+.detail { display: grid; grid-template-columns: 10.5rem minmax(0, 1fr) auto; align-items: baseline; gap: .25rem 1rem; padding: .8rem 0; border-bottom: 1px solid var(--trait); }
+.detail-cle { color: var(--encre-douce); font-size: .9rem; }
+.detail-valeur { margin: 0; overflow-wrap: anywhere; white-space: pre-line; font-variant-numeric: tabular-nums; }
+.detail-valeur a { color: var(--rouge); font-weight: 600; text-decoration: none; }
+.detail-valeur a:hover { text-decoration: underline; }
+.bouton-copier {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  padding: .15rem .7rem;
+  background: #fff;
+  border: 1px solid var(--trait-fort);
+  border-radius: 999px;
+  color: var(--encre-douce);
+  font-size: .8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color .15s, color .15s, background-color .15s;
+}
+.bouton-copier:hover { border-color: var(--rouge); color: var(--rouge); }
+.bouton-copier.copie { background: var(--vert-pale); border-color: var(--vert); color: var(--vert); }
+
+/* Cartes de résultats */
+.liste-pistes { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 232px), 1fr)); gap: 1.1rem; margin: 1.5rem 0 0; padding: 0; list-style: none; }
+.carte-piste {
+  display: flex;
+  flex-direction: column;
+  gap: .9rem;
+  height: 100%;
+  padding: .65rem .65rem .8rem;
+  background: #fff;
+  border: 1px solid var(--trait);
+  border-radius: 22px;
+  transition: border-color .2s, box-shadow .25s;
+}
+.carte-piste:hover { border-color: var(--rouge-bord); box-shadow: 0 22px 36px -26px rgba(225, 29, 46, .5), 0 6px 14px -10px rgba(28, 28, 33, .16); }
+.carte-piste.en-ecoute { border-color: var(--rouge); box-shadow: 0 0 0 3px rgba(225, 29, 46, .14), 0 22px 36px -26px rgba(225, 29, 46, .55); }
+.carte-pochette { position: relative; isolation: isolate; aspect-ratio: 1; overflow: hidden; background: #ececf1; border-radius: 16px; cursor: pointer; }
+.carte-pochette img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s var(--courbe); }
+.carte-piste:hover .carte-pochette img { transform: scale(1.04); }
+.carte-pochette-vide { display: grid; place-items: center; width: 100%; height: 100%; color: #c3c3cc; }
+.carte-duree {
+  position: absolute;
+  right: .5rem;
+  bottom: .5rem;
+  z-index: 2;
+  padding: .1rem .6rem;
+  background: rgba(255, 255, 255, .92);
+  border-radius: 999px;
+  font: 700 .78rem/1.55 var(--police-titre);
+  font-variant-numeric: tabular-nums;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+.carte-lecture { position: absolute; inset: 0; z-index: 1; display: grid; place-items: center; background: rgba(28, 28, 33, .3); opacity: 0; transition: opacity .2s; pointer-events: none; }
+.carte-lecture-rond { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; background: var(--rouge); color: #fff; box-shadow: 0 14px 26px -10px rgba(225, 29, 46, .85); transform: scale(.82); transition: transform .3s var(--courbe); }
+.carte-pochette:hover .carte-lecture, .carte-piste.en-ecoute .carte-lecture { opacity: 1; }
+.carte-pochette:hover .carte-lecture-rond, .carte-piste.en-ecoute .carte-lecture-rond { transform: none; }
+.carte-egaliseur { display: none; align-items: flex-end; gap: 3px; height: 20px; }
+.carte-egaliseur i { width: 3.5px; height: 100%; border-radius: 2px; background: #fff; transform: scaleY(.3); transform-origin: bottom; animation: egaliseur .9s ease-in-out infinite; }
+.carte-egaliseur i:nth-child(2) { animation-duration: .65s; animation-delay: -.25s; }
+.carte-egaliseur i:nth-child(3) { animation-duration: 1.05s; animation-delay: -.5s; }
+.carte-egaliseur i:nth-child(4) { animation-duration: .75s; animation-delay: -.1s; }
+.carte-piste.en-lecture .carte-egaliseur { display: inline-flex; }
+.carte-piste.en-lecture .carte-lecture-rond svg { display: none; }
+
+.carte-texte { display: grid; gap: .15rem; min-width: 0; padding-inline: .35rem; }
+.carte-titre { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; min-height: 2.6em; margin: 0; overflow: hidden; font: 700 1.02rem/1.3 var(--police-titre); letter-spacing: -.01em; overflow-wrap: anywhere; }
+.carte-artiste { margin: 0; overflow: hidden; color: var(--encre-douce); font-size: .9rem; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.carte-meta { margin: .2rem 0 0; color: #8a8a97; font-size: .82rem; font-variant-numeric: tabular-nums; }
+.carte-actions { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; margin-top: auto; }
+.carte-actions .bouton { min-width: 0; padding: .62rem .4rem; font-size: .9rem; }
+.carte-piste.en-lecture .bouton-ecouter { background: var(--rouge-pale); color: var(--rouge-fonce); }
+.carte-piste.en-lecture .bouton-ecouter:hover:not(:disabled) { background: #fbd9dc; color: var(--rouge-fonce); }
+
+.recherche-pied { display: flex; justify-content: center; margin-top: 1.5rem; }
+.bouton-retour { justify-self: start; margin-bottom: -1.5rem; padding: .45rem 1rem .45rem .7rem; background: #fff; border: 1.5px solid var(--trait-fort); color: var(--encre); font-size: .9rem; }
+.bouton-retour:hover { border-color: var(--encre); }
+
+@media (max-width: 860px) {
+  .piste { grid-template-columns: 1fr; }
+  .pochette { max-width: 320px; }
+  .rubrique { grid-template-columns: 1fr; gap: 1rem; }
+}
+@media (max-width: 640px) {
+  .detail { grid-template-columns: minmax(0, 1fr) auto; }
+  .detail-cle { grid-column: 1 / -1; }
+  .ligne-qualite { grid-template-columns: auto 1fr; }
+  .bouton-telecharger { grid-column: 1 / -1; width: 100%; }
+}
+@media (max-width: 560px) {
+  .liste-pistes { grid-template-columns: 1fr; gap: .75rem; }
+  .carte-piste { display: grid; grid-template-columns: 92px minmax(0, 1fr); grid-template-areas: "pochette texte" "actions actions"; align-items: center; gap: .65rem .9rem; }
+  .carte-pochette { grid-area: pochette; border-radius: 14px; }
+  .carte-lecture-rond { width: 40px; height: 40px; }
+  .carte-duree { right: .35rem; bottom: .35rem; padding-inline: .45rem; font-size: .7rem; }
+  .carte-texte { grid-area: texte; padding-inline: 0; }
+  .carte-titre { min-height: 0; }
+  .carte-actions { grid-area: actions; }
+}

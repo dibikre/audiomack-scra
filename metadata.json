@@ -1,0 +1,5 @@
+{
+  "name": "AM Scraper",
+  "description": "Audiomack metadata extractor, interactive waveform player, and audio stream downloader built with modular PHP.",
+  "requestFramePermissions": []
+}
